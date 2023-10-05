@@ -17,9 +17,13 @@ export const register = async(req,res) => {
         await user.save()
 
         //jwt token
+        const {token, expiresIn} = generateToken(user.id);
+        console.log(user.id)
+        
+        
+        generateRefreshToken(user.id,res);
 
-
-        return res.status(201).json({ok:true})
+        return res.status(201).json({token, expiresIn})
 
     } catch (error){
         if (error.code === 11000)
@@ -91,19 +95,20 @@ export const refreshToken = (req,res) => {
         if (!refreshTokenCookie) throw new Error("No existe el token en el header usa Bearer")
         
         const {uid} = jwt.verify(refreshTokenCookie,process.env.JWT_REFRESH);
-        const {token, expiresIn} = generateToken(uid);
+        const {token, expiresIn} = generateToken(req.uid);
         return res.json({token, expiresIn})
 
         
     } catch (error) {
         console.log(error)
+        return res.status(500).json({error:"error de server"})
     }
     
     
 
-}
+};
 
 export const logout = (req,res) => {
     res.clearCookie('refreshToken')
     res.json({ok:true})
-}
+};
